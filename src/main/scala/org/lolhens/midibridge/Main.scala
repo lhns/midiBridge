@@ -11,15 +11,15 @@ object Main {
 
     deviceInfos.flatMap(_._2).foreach { deviceInfo =>
       println(deviceInfo.getName)
-      println("-> " + deviceInfo.getDescription)
+      println("-> " + deviceInfo.getDescription + " t:" + deviceInfo.isTransmitter + " r:" + deviceInfo.isReceiver)
       //println("-> " + deviceInfo.getVendor)
       //val device = MidiSystem.getMidiDevice(deviceInfo)
       //if (!device.isOpen) device.open()
       //device.getTransmitter.setReceiver(device.getReceiver)
     }
 
-    deviceInfos("Komplete Audio 6 MIDI" /*"APC MINI"*/)(0).openDevice.getTransmitter.setReceiver(
-      deviceInfos(/*"loopMIDI Port 1"*/ "LoopBe Internal MIDI")(1).openDevice.getReceiver)
+    deviceInfos("Komplete Audio 6 MIDI" /*"APC MINI"*/).filter(_.isTransmitter).head.openDevice.getTransmitter.setReceiver(
+      deviceInfos(/*"loopMIDI Port 1"*/ "LoopBe Internal MIDI").filter(_.isReceiver).head.openDevice.getReceiver)
 
     while (true) {
       Thread.sleep(1000)
@@ -27,11 +27,20 @@ object Main {
   }
 
   implicit class RichDeviceInfo(val deviceInfo: MidiDevice.Info) extends AnyVal {
-    def openDevice: MidiDevice = {
+    def device: MidiDevice = {
       val device = MidiSystem.getMidiDevice(deviceInfo)
+      device
+    }
+
+    def openDevice: MidiDevice = {
+      val device = deviceInfo.device
       if (!device.isOpen) device.open()
       device
     }
+
+    def isTransmitter: Boolean = deviceInfo.device.getMaxTransmitters != 0
+
+    def isReceiver: Boolean = deviceInfo.device.getMaxReceivers != 0
   }
 
 }
