@@ -18,33 +18,36 @@ case class MidiDevice(info: jmidi.MidiDevice.Info) {
 
   private[midi] lazy val self = jmidi.MidiSystem.getMidiDevice(info)
 
-  def hasReceiver: Boolean = self.getMaxReceivers != 0
+  def isReceiver: Boolean = self.getMaxReceivers != 0
 
-  def hasTransmitter: Boolean = self.getMaxTransmitters != 0
+  def isTransmitter: Boolean = self.getMaxTransmitters != 0
 
-  def receiver(implicit midiSystem: MidiSystem): Option[MidiReceiver] =
-    if (hasReceiver)
+  def receiver: Option[MidiReceiver] =
+    if (isReceiver)
       Some(new MidiReceiver(this))
     else
       None
 
-  def transmitter(implicit midiSystem: MidiSystem): Option[MidiTransmitter] =
-    if (hasTransmitter)
+  def transmitter: Option[MidiTransmitter] =
+    if (isTransmitter)
       Some(new MidiTransmitter(this))
     else
       None
 
-  private[midi] def open() = new Handle()
+  private[midi] def open() = new MidiDevice.Handle(this)
 
-  private val openHandles = Atomic(List[Handle]())
+  private val openHandles = Atomic(List[MidiDevice.Handle]())
+}
 
-  class Handle {
-    if (openHandles.getAndTransform(this +: _).isEmpty)
-      self.open()
+object MidiDevice {
+
+  class Handle(val device: MidiDevice) {
+    if (device.openHandles.getAndTransform(this +: _).isEmpty)
+      device.self.open()
 
     def close(): Unit =
-      if (openHandles.transformAndGet(_.filterNot(_ == this)).isEmpty)
-        self.close()
+      if (device.openHandles.transformAndGet(_.filterNot(_ == this)).isEmpty)
+        device.self.close()
 
     override def finalize(): Unit = close()
   }
