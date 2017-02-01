@@ -1,5 +1,6 @@
 package org.lolhens.midibridge
 
+import org.lolhens.midibridge.gui.MidiBridgeGui
 import org.lolhens.midibridge.midi.MidiSystem
 
 //import javax.sound.midi._
@@ -31,9 +32,11 @@ object Main {
 
     //println(link.isDefined)
 
-    while (true) {
+    /*while (true) {
       Thread.sleep(1000)
-    }
+    }*/
+
+    new MidiBridgeGui().main(args)
   }
 
   /*implicit class RichDeviceInfo(val deviceInfo: MidiDevice.Info) extends AnyVal {
