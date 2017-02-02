@@ -23,12 +23,12 @@ object Main {
       //device.getTransmitter.setReceiver(device.getReceiver)
     }
 
-    val midiLink = devices("Komplete Audio 6 MIDI" /*"APC MINI"*/).flatMap(_.transmitter).head.setReceiver(
-      devices(/*"loopMIDI Port 1"*/ "LoopBe Internal MIDI").flatMap(_.receiver).head)
+    //val midiLink = devices("Komplete Audio 6 MIDI" /*"APC MINI"*/).flatMap(_.transmitter).head.setReceiver(
+    //  devices(/*"loopMIDI Port 1"*/ "LoopBe Internal MIDI").flatMap(_.receiver).head)
 
-    midiLink.foreach(_.close())
+    //midiLink.foreach(_.close())
 
-    println(devices("Komplete Audio 6 MIDI" /*"APC MINI"*/).flatMap(_.transmitter).head.device)
+    //println(devices("Komplete Audio 6 MIDI" /*"APC MINI"*/).flatMap(_.transmitter).head.device)
 
     //println(link.isDefined)
 
@@ -36,7 +36,7 @@ object Main {
       Thread.sleep(1000)
     }*/
 
-    new MidiBridgeGui().main(args)
+    new MidiBridgeGui(midiSystem).main(args)
   }
 
   /*implicit class RichDeviceInfo(val deviceInfo: MidiDevice.Info) extends AnyVal {

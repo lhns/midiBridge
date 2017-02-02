@@ -36,7 +36,8 @@ lazy val settings = Seq(
     "com.github.melrief" %% "pureconfig" % "0.4.0",
     "eu.timepit" %% "refined" % "0.6.1",
     "eu.timepit" %% "refined-pureconfig" % "0.6.1",
-    "org.scalafx" %% "scalafx" % "8.0.102-R11"
+    "org.scalafx" %% "scalafx" % "8.0.102-R11",
+    "com.miglayout" % "miglayout-javafx" % "5.1-SNAPSHOT"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),

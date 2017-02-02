@@ -1,37 +1,43 @@
 package org.lolhens.midibridge.gui
 
+import org.lolhens.midibridge.midi.MidiSystem
+import org.tbee.javafx.scene.layout.MigPane
+
+import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Scene
 import scalafx.scene.control.TableColumn._
-import scalafx.scene.control.{TableColumn, TableView}
+import scalafx.scene.control.{Button, TableColumn, TableView}
 import scalafx.scene.layout._
 
 /**
   * Created by pierr on 01.02.2017.
   */
-class MidiBridgeGui extends JFXApp {
-  val transmitters = new TableView[Device] {
+class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
+  val linkManager = new LinkManager(midiSystem)
+
+  val tableTransmitters = new TableView[Device] {
     columns += new TableColumn[Device, String] {
       text = "Transmitter"
       cellValueFactory = _.value.nameProperty
       prefWidth = 180
     }
-    items = ObservableBuffer(Device("asdf"))
+    items = ObservableBuffer(linkManager.getTransmitters: _*)
   }
 
-  val receivers = new TableView[Device] {
+  val tableReceivers = new TableView[Device] {
     columns += new TableColumn[Device, String] {
       text = "Receiver"
       cellValueFactory = _.value.nameProperty
       prefWidth = 180
     }
-    items = ObservableBuffer(Device("asdf"))
+    items = ObservableBuffer(linkManager.getReceivers: _*)
   }
 
-  val links = new TableView[(Device, Device)] {
+  val tableLinks = new TableView[(Device, Device)] {
     columns ++= Seq(
       new TableColumn[(Device, Device), String] {
         text = "Transmitter"
@@ -44,42 +50,64 @@ class MidiBridgeGui extends JFXApp {
         prefWidth = 180
       }
     )
-    items = ObservableBuffer(Device("asdf") -> Device("fdadas"))
+    items = ObservableBuffer()
+  }
+
+  val buttonAdd = new Button("+")
+  val buttonRemove = new Button("-")
+  val buttonApply = new Button("Apply")
+
+  buttonAdd.onAction = handle {
+    val transmitter = tableTransmitters.selectionModel.value.selectedItems.headOption
+    val receiver = tableReceivers.selectionModel.value.selectedItems.headOption
+    (transmitter zip receiver).headOption.foreach {
+      case (transmitter, receiver) =>
+        val link = transmitter -> receiver
+        tableLinks.items.value.add(link)
+    }
+  }
+
+  buttonRemove.onAction = handle {
+    tableLinks.selectionModel.value.selectedItems.headOption.foreach { selectedItem =>
+      tableLinks.items.value.remove(selectedItem)
+    }
+  }
+
+  buttonApply.onAction = handle {
+    linkManager.setLinks(tableLinks.items.value.toList)
+
+    tableTransmitters.items = ObservableBuffer(linkManager.getTransmitters: _*)
+    tableReceivers.items = ObservableBuffer(linkManager.getReceivers: _*)
+
+    println("Links applied!")
   }
 
   stage = new PrimaryStage {
     title.value = "TEST"
 
-    width = 800
-    height = 600
+    width = 500
+    height = 400
 
     scene = new Scene {
-      root = new GridPane {
-        add(transmitters, 0, 0, 1, 1)
-        add(receivers, 1, 0, 1, 1)
-        add(links, 0, 1, 2, 1)
+      root = new Pane(new MigPane(
+        "insets 2",
+        "[grow][grow]",
+        "[grow][30::][grow]"
+      ) {
+        add(tableTransmitters, "cell 0 0, grow")
+        add(tableReceivers, "cell 1 0, grow")
+        add(new MigPane("insets 0", "[30::][30::][grow]", "[]") {
+          add(buttonAdd, "cell 0 0, grow")
+          add(buttonRemove, "cell 1 0, grow")
+          add(buttonApply, "cell 2 0, grow")
+        }, "cell 0 1 2 1, grow")
+        add(tableLinks, "cell 0 2 2 1, grow")
+      })
+    }
 
-        val constraints: (Seq[RowConstraints], Seq[ColumnConstraints]) = {
-          import scala.collection.JavaConversions._
-          val managedChildren = children.toList.filter(_.isManaged)
-          val numRows = managedChildren.map(e => javafx.scene.layout.GridPane.getRowIndex(e) + javafx.scene.layout.GridPane.getRowSpan(e)).max
-          val numCols = managedChildren.map(e => javafx.scene.layout.GridPane.getColumnIndex(e) + javafx.scene.layout.GridPane.getColumnSpan(e)).max
-
-          (
-            (0 until numRows).map(_ => new RowConstraints {
-              //hgrow = Priority.Always
-              percentHeight = 100
-            }),
-            (0 until numCols).map(_ => new ColumnConstraints {
-              //vgrow = Priority.Always
-              percentWidth = 100
-            })
-          )
-        }
-
-        rowConstraints = constraints._1
-        columnConstraints = constraints._2
-      }
+    onHiding = handle {
+      println("Closing links")
+      linkManager.setLinks(Nil)
     }
   }
 }
