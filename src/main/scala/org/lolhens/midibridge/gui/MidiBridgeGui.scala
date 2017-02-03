@@ -83,7 +83,7 @@ class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
   }
 
   stage = new PrimaryStage {
-    title.value = "TEST"
+    title.value = "Midi Bridge"
 
     width = 500
     height = 400
@@ -92,11 +92,11 @@ class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
       root = new Pane(new MigPane(
         "insets 2",
         "[grow][grow]",
-        "[grow][30::][grow]"
+        "[grow][26::][grow]"
       ) {
         add(tableTransmitters, "cell 0 0, grow")
         add(tableReceivers, "cell 1 0, grow")
-        add(new MigPane("insets 0", "[30::][30::][grow]", "[]") {
+        add(new MigPane("insets 0", "[30::][30::][grow]", "[grow]") {
           add(buttonAdd, "cell 0 0, grow")
           add(buttonRemove, "cell 1 0, grow")
           add(buttonApply, "cell 2 0, grow")
