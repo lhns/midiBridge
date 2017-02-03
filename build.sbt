@@ -69,51 +69,49 @@ lazy val settings = Seq(
   ProguardKeys.libraries in Proguard := Seq(),
   ProguardKeys.merge in Proguard := false,
 
-  (ProguardKeys.options in Proguard) ++= Seq(
-    "-libraryjars <java.home>/lib/rt.jar",
-    "-dontnote", "-dontwarn", "-ignorewarnings",
-    "-dontobfuscate",
-    "-dontoptimize",
-    "-keepattributes Signature, *Annotation*",
-    "-keepclassmembers class * {** MODULE$;}"
-    //"-keepclasseswithmembers public class com.javafx.main.Main, org.eclipse.jdt.internal.jarinjarloader.* {*;}"
-  ) ++ Seq(
-    "* extends akka.dispatch.ExecutorServiceConfigurator",
-    "* extends akka.dispatch.MessageDispatcherConfigurator",
-    "* extends akka.remote.RemoteTransport",
-    "* implements akka.actor.Actor",
-    "* implements akka.actor.ActorRefProvider",
-    "* implements akka.actor.ExtensionId",
-    "* implements akka.actor.ExtensionIdProvider",
-    "* implements akka.actor.SupervisorStrategyConfigurator",
-    "* implements akka.dispatch.MailboxType",
-    "* implements akka.routing.RouterConfig",
-    "* implements akka.serialization.Serializer",
-    "akka.*.*MessageQueueSemantics",
-    "akka.actor.LightArrayRevolverScheduler",
-    "akka.actor.LocalActorRefProvider",
-    "akka.actor.SerializedActorRef",
-    "akka.dispatch.MultipleConsumerSemantics",
-    "akka.event.Logging$LogExt",
-    "akka.event.Logging*",
-    "akka.remote.DaemonMsgCreate",
-    "akka.routing.ConsistentHashingPool",
-    "akka.routing.RoutedActorCell$RouterActorCreator",
-    "akka.event.DefaultLoggingFilter",
+  (ProguardKeys.options in Proguard) ++= {
+    val libraryJars = Seq(
+      "<java.home>/lib/rt.jar",
+      "<java.home>/lib/ext/jfxrt.jar"
+    )
 
-    "* extends javafx.application.Application",
-    "scalafx.application.AppHelper",
-    "scalafx.event.EventIncludes",
-    "* extends com.sun.javafx.collections.ListListenerHelper",
-    "* implements javafx.collections.ListChangeListener",
-    "* extends javafx.collections.ListChangeListener.Change",
-    "scalafx.**",
-    "javafx.**",
-    "com.sun.javafx.**",
-    "* extends scalafx.**",
-    "* extends javafx.**",
-    "* extends com.sun.javafx.**"
-  ).map(clazz => s"-keep class $clazz {*;}"),
+    val settings = Seq(
+      "dontnote", "dontwarn", "ignorewarnings",
+      "dontobfuscate",
+      "dontoptimize",
+      "keepattributes Signature, *Annotation*",
+      "keepclassmembers class * {** MODULE$;}"
+    )
+
+    val excluded = Seq(
+      "* extends akka.dispatch.ExecutorServiceConfigurator",
+      "* extends akka.dispatch.MessageDispatcherConfigurator",
+      "* extends akka.remote.RemoteTransport",
+      "* implements akka.actor.Actor",
+      "* implements akka.actor.ActorRefProvider",
+      "* implements akka.actor.ExtensionId",
+      "* implements akka.actor.ExtensionIdProvider",
+      "* implements akka.actor.SupervisorStrategyConfigurator",
+      "* implements akka.dispatch.MailboxType",
+      "* implements akka.routing.RouterConfig",
+      "* implements akka.serialization.Serializer",
+      "akka.*.*MessageQueueSemantics",
+      "akka.actor.LightArrayRevolverScheduler",
+      "akka.actor.LocalActorRefProvider",
+      "akka.actor.SerializedActorRef",
+      "akka.dispatch.MultipleConsumerSemantics",
+      "akka.event.Logging$LogExt",
+      "akka.event.Logging*",
+      "akka.remote.DaemonMsgCreate",
+      "akka.routing.ConsistentHashingPool",
+      "akka.routing.RoutedActorCell$RouterActorCreator",
+      "akka.event.DefaultLoggingFilter"
+    )
+
+    libraryJars.map(libraryJar => s"-libraryjars $libraryJar") ++
+      settings.map(setting => s"-$setting") ++
+      excluded.flatMap(clazz => List(s"-keep class $clazz {*;}", s"-keep interface $clazz {*;}"))
+  },
 
   (ProguardKeys.proguard in Proguard) := (ProguardKeys.proguard in Proguard).dependsOn(assembly).value
 )
