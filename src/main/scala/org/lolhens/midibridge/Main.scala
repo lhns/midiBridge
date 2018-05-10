@@ -20,16 +20,17 @@ object Main {
         .getParent
         .resolve(".midi-links.txt")
 
-    val linkManager = new PersistedLinkManager(midiSystem, propertiesFile)
+    lazy val linkManager = new PersistedLinkManager(midiSystem, propertiesFile)
 
     args.lift(0).getOrElse("") match {
       case "--help" =>
         println(
           """Options:
-            |  use --headless to run without gui""".stripMargin
+            |  --headless: run without gui""".stripMargin
         )
 
       case "--headless" =>
+        linkManager
 
       case _ =>
         new MidiBridgeGui(linkManager).main(args)
