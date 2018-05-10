@@ -1,7 +1,6 @@
 package org.lolhens.midibridge.midi
 
 import javax.sound.{midi => jmidi}
-
 import monix.execution.atomic.Atomic
 
 /**

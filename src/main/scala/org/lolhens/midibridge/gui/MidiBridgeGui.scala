@@ -1,8 +1,7 @@
 package org.lolhens.midibridge.gui
 
-import org.lolhens.midibridge.midi.MidiSystem
+import org.lolhens.midibridge.LinkManager
 import org.tbee.javafx.scene.layout.MigPane
-
 import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -16,9 +15,7 @@ import scalafx.scene.layout._
 /**
   * Created by pierr on 01.02.2017.
   */
-class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
-  val linkManager = new LinkManager(midiSystem)
-
+class MidiBridgeGui(linkManager: LinkManager) extends JFXApp {
   val tableTransmitters = new TableView[Device] {
     columns += new TableColumn[Device, String] {
       text = "Transmitter"
@@ -50,7 +47,10 @@ class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
         prefWidth = 180
       }
     )
-    items = ObservableBuffer()
+    items = ObservableBuffer(linkManager.getLinks.map {
+      case (transmitter, receiver) =>
+        Device(transmitter.device.name) -> Device(receiver.device.name)
+    })
   }
 
   val buttonAdd = new Button("+")
@@ -73,8 +73,18 @@ class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
     }
   }
 
+  private def setLinks(links: Seq[(Device, Device)]): Unit =
+    linkManager.setLinks(links.flatMap {
+      case (transmitterDevice, receiverDevice) =>
+        for {
+          transmitter <- linkManager.transmitter(transmitterDevice.name)
+          receiver <- linkManager.receiver(receiverDevice.name)
+        } yield
+          transmitter -> receiver
+    })
+
   buttonApply.onAction = handle {
-    linkManager.setLinks(tableLinks.items.value.toList)
+    setLinks(tableLinks.items.value.toList)
 
     tableTransmitters.items = ObservableBuffer(linkManager.getTransmitters: _*)
     tableReceivers.items = ObservableBuffer(linkManager.getReceivers: _*)
@@ -107,7 +117,7 @@ class MidiBridgeGui(midiSystem: MidiSystem) extends JFXApp {
 
     onHiding = handle {
       println("Closing links")
-      linkManager.setLinks(Nil)
+      linkManager.close()
     }
   }
 }
