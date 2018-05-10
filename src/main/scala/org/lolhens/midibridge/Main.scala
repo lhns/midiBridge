@@ -13,9 +13,9 @@ import org.lolhens.midibridge.midi.MidiSystem
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    val midiSystem = MidiSystem()
+    lazy val midiSystem = MidiSystem()
 
-    val propertiesFile =
+    lazy val propertiesFile =
       Paths.get(new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath).getPath)
         .getParent
         .resolve(".midi-links.txt")
