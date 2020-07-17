@@ -1,22 +1,25 @@
 name := "MidiBridge"
 
+lazy val osName: String =
+  if (scala.util.Properties.isLinux) "linux"
+  else if (scala.util.Properties.isMac) "mac"
+  else if (scala.util.Properties.isWin) "win"
+  else throw new Exception("Unknown platform!")
+
 lazy val settings = Seq(
-  version := "0.1.1",
+  version := "0.2.0",
 
-  scalaVersion := "2.12.4",
-
-  resolvers ++= Seq(
-    "lolhens-maven" at "http://artifactory.lolhens.de/artifactory/maven-public/",
-    Resolver.url("lolhens-ivy", url("http://artifactory.lolhens.de/artifactory/ivy-public/"))(Resolver.ivyStylePatterns)
-  ),
+  scalaVersion := "2.13.3",
 
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "org.typelevel" %% "cats-core" % "1.1.0",
-    "io.monix" %% "monix" % "3.0.0-RC1",
-    "com.oracle" % "jfxrt" % "8",
-    "org.scalafx" %% "scalafx" % "8.0.144-R12",
-    "com.miglayout" % "miglayout-javafx" % "5.1"
+    "org.typelevel" %% "cats-core" % "2.1.1",
+    "io.monix" %% "monix" % "3.2.2",
+    "org.openjfx" % "javafx-base" % "14.0.1" classifier osName,
+    "org.openjfx" % "javafx-controls" % "14.0.1" classifier osName,
+    "org.openjfx" % "javafx-graphics" % "14.0.1" classifier osName,
+    "org.openjfx" % "javafx-media" % "14.0.1" classifier osName,
+    "org.scalafx" %% "scalafx" % "14-R19",
+    "com.miglayout" % "miglayout-javafx" % "5.2"
   ),
 
   mainClass in Compile := Some("org.lolhens.midibridge.Main"),
@@ -24,21 +27,7 @@ lazy val settings = Seq(
   assemblyOption in assembly := (assemblyOption in assembly).value
     .copy(prependShellScript = Some(defaultUniversalScript(shebang = false))),
 
-  assemblyJarName in assembly := s"${name.value}-${version.value}.sh.bat",
-
-  scalacOptions ++= Seq("-Xmax-classfile-name", "127")
-)
-
-lazy val classpathJar = Seq(
-  scriptClasspath := {
-    val manifest = new java.util.jar.Manifest()
-    manifest.getMainAttributes.putValue("Class-Path", scriptClasspath.value.mkString(" "))
-    val classpathJar = (target in Universal).value / "lib" / "classpath.jar"
-    IO.jar(Seq.empty, classpathJar, manifest)
-    Seq("classpath.jar")
-  },
-
-  mappings in Universal += ((target in Universal).value / "lib" / "classpath.jar", "lib/classpath.jar")
+  assemblyJarName in assembly := s"${name.value}-${version.value}.sh.bat"
 )
 
 def universalScript(shellCommands: String,
@@ -73,6 +62,7 @@ def defaultUniversalScript(javaOpts: Seq[String] = Seq.empty,
 lazy val root = project.in(file("."))
   .enablePlugins(
     JavaAppPackaging,
-    UniversalPlugin)
+    UniversalPlugin,
+    ClasspathJarPlugin
+  )
   .settings(settings: _*)
-  .settings(classpathJar: _*)
